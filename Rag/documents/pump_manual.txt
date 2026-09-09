@@ -1,0 +1,23 @@
+PUMP MAINTENANCE MANUAL
+Model: Pump P-999
+
+1. INTRODUCTION
+This manual covers the operation and maintenance of Pump P-999, designed for industrial fluid transfer.
+
+2. INSPECTION SCHEDULE
+- Daily: Check for unusual noise or leaks.
+- Weekly: Monitor operating pressure.
+- Monthly: Pump bearings must be inspected every month for wear and proper lubrication.
+- Annually: Full teardown and internal inspection.
+
+3. TROUBLESHOOTING
+Vibration:
+Why is the pump vibrating? Common causes include:
+- Misalignment between the pump and motor.
+- Worn or damaged bearings.
+- Loose mounting bolts.
+
+Loss of Pressure:
+- Worn wear rings.
+- Clogged suction strainer.
+- Air leak in the suction line.

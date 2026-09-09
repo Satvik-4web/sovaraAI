@@ -1,0 +1,9 @@
+__pycache__/
+*.pyc
+.env
+.venv
+env/
+venv/
+outputs/
+Rag/qdrant_data/
+evaluation/results.json

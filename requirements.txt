@@ -1,0 +1,9 @@
+qdrant-client>=1.19.0
+requests
+pydantic
+langgraph
+langchain-core
+pymupdf
+pandas
+openpyxl
+python-docx
