@@ -1,0 +1,15 @@
+﻿{
+  "P-101": {
+    "type": "centrifugal_pump",
+    "unit": "Unit-100",
+    "status": "operational",
+    "design_pressure": "150 PSI",
+    "normal_vibration": "1.5 mm/s"
+  },
+  "T-101": {
+    "type": "feed_tank",
+    "unit": "Unit-100",
+    "status": "operational",
+    "capacity": "5000 gallons"
+  }
+}

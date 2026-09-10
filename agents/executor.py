@@ -130,13 +130,36 @@ def synthesize_node(state: AgentState):
         url = "http://localhost:11434/api/chat"
         system_prompt = "You are SOVARA. Synthesize a concise final answer based ONLY on the evidence and tool results. If no evidence is present for factual claims, state exactly: 'The available knowledge base does not contain enough information.'"
         
-        evidence = "\\n".join([c.get("text", "") for c in state["retrieved_context"]])
-        tool_res = "\\n".join([str(t["result"]) for t in state["tool_results"]])
+        # 1A: Deduplicate and compress context
+        unique_ev = []
+        seen_texts = set()
+        for c in state["retrieved_context"]:
+            text = c.get("text", "")
+            if text and text not in seen_texts:
+                seen_texts.add(text)
+                unique_ev.append(c)
+                
+        def _truncate(s, max_len=1500):
+            return s if len(s) <= max_len else s[:max_len] + "... [TRUNCATED]"
+
+        evidence_parts = []
+        for c in unique_ev[:3]: # limit to top 3 unique chunks
+            evidence_parts.append(f"[Source: {c.get('source', 'unknown')}]: {_truncate(c.get('text', ''))}")
+        evidence = "\n".join(evidence_parts)
         
-        prompt = f"EVIDENCE:\\n{evidence}\\n\\nTOOL RESULTS:\\n{tool_res}\\n\\nQUERY: {state['user_query']}"
+        tool_res_parts = []
+        for t in state["tool_results"]:
+            res_str = str(t.get("result", ""))
+            tool_res_parts.append(f"[{t.get('tool', 'unknown')}]: {_truncate(res_str, 1500)}")
+        tool_res = "\n".join(tool_res_parts)
+        
+        prompt = f"EVIDENCE:\n{evidence}\n\nTOOL RESULTS:\n{tool_res}\n\nQUERY: {state['user_query']}"
+        
+        # 1B: Use dynamically routed model
+        selected_model = state.get("selected_model", "qwen3:4b")
         
         payload = {
-            "model": "qwen3:4b",
+            "model": selected_model,
             "messages": [
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
@@ -173,3 +196,4 @@ def risk_node(state: AgentState):
     state["timing"]["risk_ms"] = (time.time() - t0) * 1000
     state["status"] = "COMPLETED"
     return state
+
