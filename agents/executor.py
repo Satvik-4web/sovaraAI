@@ -78,6 +78,8 @@ def execute_node(state: AgentState):
             tt0 = time.time()
             try:
                 if action == "calculate" or cap == "python":
+                    if "code" in args and "expression" not in args:
+                        args["expression"] = args.pop("code")
                     res = registry.execute("calculate", args)
                     state["tool_results"].append({"tool": "calculate", "result": res})
                 elif cap == "file":
@@ -124,14 +126,11 @@ def synthesize_node(state: AgentState):
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": prompt}
             ],
-            "stream": False,
-            "options": {
-                "num_predict": 250,
-                "temperature": 0.2
-            }
+            "stream": False
         }
         try:
-            resp = requests.post(url, json=payload, timeout=60)
+            resp = requests.post(url, json=payload, timeout=120)
+            resp.raise_for_status()
             state["final_answer"] = resp.json()["message"]["content"]
         except Exception as e:
             state["final_answer"] = f"Synthesis error: {e}"

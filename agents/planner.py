@@ -18,16 +18,26 @@ Output ONLY valid JSON. Keep it extremely concise. Max 5 steps."""
             {"role": "user", "content": query + files_str}
         ],
         "stream": False,
-        "format": "json",
-        "options": {
-            "num_predict": 250,
-            "temperature": 0.1
-        }
+        "format": "json"
     }
     try:
         resp = requests.post(url, json=payload, timeout=60)
         resp.raise_for_status()
         content = resp.json()["message"]["content"]
-        return json.loads(content)
+        parsed = json.loads(content)
+        if "steps" in parsed and isinstance(parsed["steps"], list):
+            valid_steps = []
+            for i, step in enumerate(parsed["steps"]):
+                if isinstance(step, str):
+                    cap = "python" if "calculat" in step.lower() else "general"
+                    valid_steps.append({"id": i+1, "action": step, "required_capability": cap, "args": {"expression": step}})
+                else:
+                    if "calculat" in step.get("action", "").lower() or "calculat" in str(step.get("args", "")).lower():
+                        step["required_capability"] = "python"
+                    if "write" in step.get("action", "").lower() or "file" in step.get("action", "").lower():
+                        step["required_capability"] = "file"
+                    valid_steps.append(step)
+            parsed["steps"] = valid_steps
+        return parsed
     except Exception as e:
         return {"goal": "fallback", "steps": [{"id": 1, "action": "generic_response", "required_capability": "rag"}]}

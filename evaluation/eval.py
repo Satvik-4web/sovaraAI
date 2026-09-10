@@ -90,7 +90,14 @@ def run_evaluation():
             "latency": latency,
             "risk": actual_risk
         })
-        print(f"Result: {'PASS' if passed else 'FAIL'} (Expected {test['expected_risk']}, Got {actual_risk}) in {latency:.2f}s")
+        if passed:
+            print(f"\\nResult: PASS (Expected {test['expected_risk']}, Got {actual_risk}) in {latency:.2f}s")
+        else:
+            print(f"\\nResult: FAIL (Expected {test['expected_risk']}, Got {actual_risk}) in {latency:.2f}s")
+            print(f"  Final Answer: {res.get('final_answer')}")
+            print(f"  Tool Results: {res.get('tool_results')}")
+            print(f"  Risk Result: {res.get('risk_result')}")
+            print(f"  Errors: {res.get('errors')}")
         
     with open("evaluation/results.json", "w") as f:
         json.dump(results, f, indent=2)

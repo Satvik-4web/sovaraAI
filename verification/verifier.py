@@ -4,8 +4,18 @@ def verify_results(evidence: List[Dict], final_answer: str, tool_outputs: List[s
     # We strictly instructed the LLM to output a specific phrase if evidence is missing
     insufficient_phrase = "does not contain enough information"
     
-    # Evidence is considered "available" if chunks were retrieved AND the LLM didn't reject them as insufficient
-    evidence_available = len(evidence) > 0 and insufficient_phrase not in final_answer.lower()
+    # If the answer is completely empty, the model refused to answer (likely due to missing evidence).
+    is_empty_answer = len(final_answer.strip()) == 0
+    ans_lower = final_answer.lower()
+    is_rejected = (
+        "does not contain enough information" in ans_lower or 
+        "not mentioned" in ans_lower or 
+        "cannot answer" in ans_lower or 
+        "not provided" in ans_lower or
+        "error" in ans_lower or
+        "timeout" in ans_lower
+    )
+    evidence_available = len(evidence) > 0 and not is_rejected and not is_empty_answer
     
     issues = []
     for tool_res in tool_outputs:
