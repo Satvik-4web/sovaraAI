@@ -46,9 +46,12 @@ def execute_node(state: AgentState):
                 res = MultimodalAdapter.extract_text(file_path)
                 state["tool_results"].append({"tool": "multimodal", "result": res})
                 if res.get("uncertainties"): state["uncertainties"].extend(res.get("uncertainties"))
-            elif ext in ["xlsx", "csv"]:
+            elif ext == "xlsx" or ext == "xls":
                 res = registry.execute("analyze_excel", {"file_path": file_path})
-                state["tool_results"].append({"tool": "excel", "result": res})
+                state["tool_results"].append({"tool": "analyze_excel", "result": res})
+            elif ext == "csv":
+                res = registry.execute("analyze_csv", {"file_path": file_path})
+                state["tool_results"].append({"tool": "analyze_csv", "result": res})
         except Exception as e:
             state["errors"].append(f"Auto-route error for {file_path}: {e}")
             
@@ -74,31 +77,43 @@ def execute_node(state: AgentState):
                 state["errors"].append(f"RAG failure: {e}")
             rag_ms += (time.time() - rt0) * 1000
             
-        elif cap in ["python", "file", "excel", "multimodal"]:
+        elif cap in ["python", "file", "excel", "csv", "multimodal", "general", "generate_docx"]:
             tt0 = time.time()
             try:
                 if action == "calculate" or cap == "python":
-                    if "code" in args and "expression" not in args:
-                        args["expression"] = args.pop("code")
-                    res = registry.execute("calculate", args)
-                    state["tool_results"].append({"tool": "calculate", "result": res})
+                    # Route to Person C execute_python instead of basic calculate
+                    if "code" not in args:
+                        args["code"] = args.get("expression", "pass")
+                    res = registry.execute("execute_python", {"code": args["code"]})
+                    state["tool_results"].append({"tool": "execute_python", "result": res})
                 elif cap == "file":
-                    res = registry.execute("write_file", args) if "write_file" in args else registry.execute("read_file", args)
+                    if "content" in args or "write" in action:
+                        res = registry.execute("write_file", args)
+                    else:
+                        res = registry.execute("read_file", args)
                     state["tool_results"].append({"tool": "file", "result": res})
                 elif cap == "multimodal":
                     from multimodal.adapter import MultimodalAdapter
-                    if "image" in str(args).lower():
+                    if "image" in str(args).lower() or args.get("file_path", "").endswith(("png", "jpg")):
                         res = MultimodalAdapter.analyze_image(args.get("file_path", "unknown.png"))
                     else:
                         res = MultimodalAdapter.extract_text(args.get("file_path", "unknown.pdf"))
                     state["tool_results"].append({"tool": "multimodal", "result": res})
                     if res.get("uncertainties"):
                         state["uncertainties"].extend(res.get("uncertainties"))
-                elif cap == "excel":
+                elif cap == "excel" or "excel" in action:
                     res = registry.execute("analyze_excel", args)
-                    state["tool_results"].append({"tool": "excel", "result": res})
+                    state["tool_results"].append({"tool": "analyze_excel", "result": res})
+                elif cap == "csv" or "csv" in action:
+                    res = registry.execute("analyze_csv", args)
+                    state["tool_results"].append({"tool": "analyze_csv", "result": res})
                 else:
-                    state["tool_results"].append({"tool": action, "result": "Tool not implemented"})
+                    # Let registry handle it directly if the action matches a tool name
+                    try:
+                        res = registry.execute(action, args)
+                        state["tool_results"].append({"tool": action, "result": res})
+                    except ValueError:
+                        state["tool_results"].append({"tool": action, "result": f"Tool '{action}' not implemented"})
                 state["execution_events"].append(f"TOOL_COMPLETED: {action}")
             except Exception as e:
                 state["errors"].append(str(e))

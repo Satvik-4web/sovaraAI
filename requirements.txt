@@ -11,4 +11,8 @@ paddleocr>=2.7
 paddlepaddle>=2.6
 Pillow>=10.0
 opencv-python-headless>=4.8
-numpy>=1.24easyocr
+numpy>=1.24.0
+easyocr
+pandas>=2.0.0
+scipy>=1.10.0
+
