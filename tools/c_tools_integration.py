@@ -1,4 +1,4 @@
-﻿from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional
 from pydantic import BaseModel, Field
 from tools.registry import registry
 
@@ -59,7 +59,7 @@ class GenerateMarkdownInput(BaseModel):
 def _execute_python(**kwargs): return execute_python(**kwargs)
 def _read_file(**kwargs): return read_file_content(**kwargs)
 def _write_file(**kwargs): return write_file_content(**kwargs)
-def _list_files(**kwargs): return list_workspace_directory(**kwargs)
+def _list_files(**kwargs): return list_workspace_directory(subpath=kwargs.get("directory_path", "."))
 def _analyze_csv(**kwargs): return analyze_csv(**kwargs)
 def _analyze_excel(**kwargs): return analyze_excel(**kwargs)
 def _generate_docx(**kwargs): return generate_docx(**kwargs)
