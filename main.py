@@ -14,12 +14,12 @@ import tools.demo_tools
 import tools.c_tools_integration
 from tools.registry import registry
 
-def run_sovara_task(user_query: str, files: list = None, knowledge_base: str = None) -> dict:
+def run_sovara_task(task: str, files: list = None, knowledge_context: str = None, options: dict = None) -> dict:
     run_id = str(uuid.uuid4())
     
     initial_state: AgentState = {
         "run_id": run_id,
-        "user_query": user_query,
+        "user_query": task,
         "task": "",
         "plan": None,
         "current_step": 0,
@@ -73,18 +73,47 @@ def run_sovara_task(user_query: str, files: list = None, knowledge_base: str = N
         
     result_state["timing"]["total_ms"] = (time.time() - t0) * 1000
         
+    # Build structured outputs
+    outputs_list = []
+    for tr in result_state.get("tool_results", []):
+        if tr.get("tool") == "generate_docx" and tr.get("result", {}).get("success"):
+            r = tr["result"].get("result", {})
+            outputs_list.append({
+                "name": r.get("filename", "output.docx"),
+                "path": r.get("path", ""),
+                "type": "docx"
+            })
+            
+    is_success = result_state["status"] == "COMPLETED"
+
     return {
+        "success": is_success,
+        "task_id": result_state["run_id"],
         "run_id": result_state["run_id"],
         "status": result_state["status"],
         "answer": result_state["final_answer"],
+        "plan": result_state.get("plan", {}).get("steps", []),
+        "execution": {
+            "steps": result_state["execution_events"],
+            "duration_ms": result_state["timing"].get("total_ms", 0)
+        },
         "evidence": result_state["retrieved_context"],
         "citations": [c.get("chunk_id") for c in result_state["retrieved_context"]],
+        "verification": {
+            "status": result_state.get("verification_result", {}).get("verification_status", "UNKNOWN"),
+            "issues": []
+        } if result_state.get("verification_result") else None,
+        "risk": {
+            "level": result_state.get("risk_result", {}).get("risk_level", "UNKNOWN"),
+            "human_review_required": result_state.get("human_review_required", False)
+        } if result_state.get("risk_result") else None,
+        "outputs": outputs_list,
+        "models_used": [result_state.get("selected_model", "qwen3:4b")],
+        "errors": result_state["errors"],
+        
+        # Backwards compat for old tests
         "execution_trace": result_state["execution_events"],
         "deliverables": result_state["tool_results"],
-        "verification": result_state["verification_result"],
-        "risk": result_state["risk_result"],
-        "human_review_required": result_state.get("human_review_required", False),
-        "errors": result_state["errors"],
         "timing": result_state["timing"]
     }
 
@@ -102,8 +131,8 @@ if __name__ == "__main__":
     print("==================================================\\n")
     
     if args.demo:
-        query = "Analyze the pump inspection information, examine the engineering drawing, retrieve relevant maintenance guidance from the internal knowledge base, analyze the inspection measurements, identify potential issues, perform required calculations, verify the evidence, assess risk, and prepare an engineering approval note."
-        files = ["demo/inspection_report.pdf", "demo/pump_inspection.xlsx", "demo/pump_pid.png"]
+        query = "Analyze P-101 using the provided P&ID, inspection report, maintenance spreadsheet and maintenance procedure. Identify abnormal conditions, explain the supporting evidence, perform any required calculations, assess risk, and prepare an approval recommendation."
+        files = ["demo/pump_pid.png", "demo/inspection_report.pdf", "demo/pump_inspection.xlsx", "datasets/synthetic_plant/documents/P101_Maintenance_SOP.md"]
     else:
         query = " ".join(args.query)
         files = []
@@ -112,10 +141,10 @@ if __name__ == "__main__":
     if files: print(f"Input Files: {files}")
     print("\\n")
     
-    result = run_sovara_task(user_query=query, files=files)
+    result = run_sovara_task(task=query, files=files)
     
     print(f"Status: {result['status']}")
-    print(f"Risk: {result['risk']['risk_level'] if result['risk'] else 'N/A'}")
+    print(f"Risk: {result['risk']['level'] if result['risk'] else 'N/A'}")
     print(f"Human Review: {result['human_review_required']}")
     print(f"Answer: {result['answer']}")
     print(f"Errors: {result['errors']}")

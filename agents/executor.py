@@ -8,7 +8,7 @@ from Rag.search import search_knowledge
 
 def understand_node(state: AgentState):
     state["task"] = state["user_query"]
-    state["execution_events"].append("TASK_UNDERSTANDING completed")
+    state["execution_events"].append("TASK_UNDERSTANDING")
     return state
 
 def plan_node(state: AgentState):
@@ -23,7 +23,7 @@ def plan_node(state: AgentState):
 def select_action_node(state: AgentState):
     route = route_model(state["task"])
     state["selected_model"] = route["model"]
-    state["execution_events"].append(f"MODEL_SELECTED: {route['model']}")
+    state["execution_events"].append("MODEL_SELECTED")
     return state
 
 def execute_node(state: AgentState):
@@ -72,7 +72,7 @@ def execute_node(state: AgentState):
             try:
                 chunks = search_knowledge(state["user_query"], limit=3)
                 state["retrieved_context"].extend(chunks)
-                state["execution_events"].append(f"RAG_COMPLETED: retrieved {len(chunks)} chunks")
+                state["execution_events"].append("RAG_COMPLETED")
             except Exception as e:
                 state["errors"].append(f"RAG failure: {e}")
             rag_ms += (time.time() - rt0) * 1000
@@ -114,7 +114,7 @@ def execute_node(state: AgentState):
                         state["tool_results"].append({"tool": action, "result": res})
                     except ValueError:
                         state["tool_results"].append({"tool": action, "result": f"Tool '{action}' not implemented"})
-                state["execution_events"].append(f"TOOL_COMPLETED: {action}")
+                state["execution_events"].append("TOOL_COMPLETED")
             except Exception as e:
                 state["errors"].append(str(e))
             tool_ms += (time.time() - tt0) * 1000

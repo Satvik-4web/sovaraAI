@@ -1,0 +1,37 @@
+[
+  {
+    "id": "q1_rag",
+    "passed": true,
+    "latency": 89.60055184364319,
+    "answer": "The available knowledge base does not contain enough information.",
+    "risk": "HIGH"
+  },
+  {
+    "id": "q2_excel",
+    "passed": true,
+    "latency": 85.1771080493927,
+    "answer": "Based on the `P101_Vibration_History.csv` data, Pump P-101 has the highest recorded vibration of 7.5 mm_s on 2026-09-10, with a status of 'Warning'.",
+    "risk": "LOW"
+  },
+  {
+    "id": "q3_calculation",
+    "passed": true,
+    "latency": 75.38126587867737,
+    "answer": "The available knowledge base does not contain enough information.",
+    "risk": "HIGH"
+  },
+  {
+    "id": "q4_out_of_knowledge",
+    "passed": true,
+    "latency": 75.25943040847778,
+    "answer": "The available knowledge base does not contain enough information.",
+    "risk": "HIGH"
+  },
+  {
+    "id": "q5_cross_modal",
+    "passed": true,
+    "latency": 75.47837567329407,
+    "answer": "The available knowledge base does not contain enough information.",
+    "risk": "HIGH"
+  }
+]
