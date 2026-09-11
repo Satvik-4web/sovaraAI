@@ -1,12 +1,24 @@
 ﻿from fastapi import FastAPI, UploadFile, File, BackgroundTasks, HTTPException
+from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
 import uuid
 import os
 import shutil
+import json
 from main import run_sovara_task
+import time
 
 app = FastAPI(title="SOVARA API")
+
+# Add CORS middleware
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"], # For dev, ideally restricted
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 tasks_db = {}
 files_db = {}
@@ -41,14 +53,15 @@ async def run_task(task_id: str, request: TaskRunRequest, background_tasks: Back
         raise HTTPException(status_code=404, detail="Task not found")
         
     tasks_db[task_id]["status"] = "RUNNING"
-    tasks_db[task_id]["events"].append({"event": "TASK_STARTED", "status": "running"})
+    tasks_db[task_id]["events"].append({"event": "TASK_STARTED", "status": "completed"})
     
     def _run():
         res = run_sovara_task(request.query, files=files_db.get(task_id, []))
         tasks_db[task_id]["result"] = res
-        tasks_db[task_id]["status"] = res.get("status", "COMPLETED")
+        tasks_db[task_id]["status"] = "COMPLETED"
         for event in res.get("execution", {}).get("steps", []):
-            tasks_db[task_id]["events"].append({"event": event, "status": "completed"})
+            if event != "TASK_STARTED":
+                tasks_db[task_id]["events"].append({"event": event, "status": "completed"})
             
     background_tasks.add_task(_run)
     return {"message": "Task started", "task_id": task_id}
@@ -57,7 +70,11 @@ async def run_task(task_id: str, request: TaskRunRequest, background_tasks: Back
 async def get_task(task_id: str):
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="Task not found")
-    return tasks_db[task_id]
+    
+    base = tasks_db[task_id]
+    if "result" in base:
+        return {**base, **base["result"]}
+    return base
 
 @app.get("/api/tasks/{task_id}/events")
 async def get_task_events(task_id: str):
@@ -71,3 +88,7 @@ async def get_task_outputs(task_id: str):
         raise HTTPException(status_code=404, detail="Task not found")
     res = tasks_db[task_id].get("result", {})
     return {"outputs": res.get("outputs", [])}
+
+if __name__ == '__main__':
+    import uvicorn
+    uvicorn.run(app, host='0.0.0.0', port=8000)
