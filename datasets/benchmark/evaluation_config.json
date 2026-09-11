@@ -1,0 +1,10 @@
+﻿{
+  "tolerances": {
+    "latency_p95_ms": 15000,
+    "min_accuracy": 0.85
+  },
+  "runner": {
+    "timeout_per_task_s": 60,
+    "retries": 1
+  }
+}

@@ -1,0 +1,90 @@
+[
+  {
+    "id": "TEST_A_Simple_RAG",
+    "success": true,
+    "plan": [
+      {
+        "id": 1,
+        "action": "generic_response",
+        "required_capability": "rag"
+      }
+    ],
+    "models_used": [
+      "gemma3:4b"
+    ],
+    "verification": {
+      "status": "NEEDS_REVIEW",
+      "issues": []
+    },
+    "risk": {
+      "level": "HIGH",
+      "human_review_required": true
+    }
+  },
+  {
+    "id": "TEST_B_Single_Tool",
+    "success": true,
+    "plan": [
+      {
+        "id": 1,
+        "action": "generic_response",
+        "required_capability": "rag"
+      }
+    ],
+    "models_used": [
+      "gemma3:4b"
+    ],
+    "verification": {
+      "status": "NEEDS_REVIEW",
+      "issues": []
+    },
+    "risk": {
+      "level": "HIGH",
+      "human_review_required": true
+    }
+  },
+  {
+    "id": "TEST_D_Cross_modal_P101",
+    "success": true,
+    "plan": [
+      {
+        "id": 1,
+        "action": "generic_response",
+        "required_capability": "rag"
+      }
+    ],
+    "models_used": [
+      "gemma3:4b"
+    ],
+    "verification": {
+      "status": "NEEDS_REVIEW",
+      "issues": []
+    },
+    "risk": {
+      "level": "HIGH",
+      "human_review_required": true
+    }
+  },
+  {
+    "id": "TEST_E_Out_of_KB",
+    "success": true,
+    "plan": [
+      {
+        "id": 1,
+        "action": "generic_response",
+        "required_capability": "rag"
+      }
+    ],
+    "models_used": [
+      "gemma3:4b"
+    ],
+    "verification": {
+      "status": "NEEDS_REVIEW",
+      "issues": []
+    },
+    "risk": {
+      "level": "HIGH",
+      "human_review_required": true
+    }
+  }
+]
