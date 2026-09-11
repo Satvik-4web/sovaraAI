@@ -39,8 +39,9 @@ async def upload_file(task_id: str, file: UploadFile = File(...)):
     if task_id not in tasks_db:
         raise HTTPException(status_code=404, detail="Task not found")
         
-    os.makedirs(f"uploads/{task_id}", exist_ok=True)
-    file_path = f"uploads/{task_id}/{file.filename}"
+    upload_dir = os.path.abspath(f"uploads/{task_id}")
+    os.makedirs(upload_dir, exist_ok=True)
+    file_path = os.path.join(upload_dir, os.path.basename(file.filename))
     with open(file_path, "wb") as buffer:
         shutil.copyfileobj(file.file, buffer)
         

@@ -18,7 +18,7 @@ class PDFProcessor:
         """
         results = []
         try:
-            with fitz.open(str(pdf_path)) as doc:
+            with fitz.open(str(Path(pdf_path).resolve())) as doc:
                 if doc.is_encrypted:
                     logger.warning(f"PDF is encrypted: {pdf_path}")
                 for page_num in range(len(doc)):
@@ -43,7 +43,7 @@ class PDFProcessor:
         images = []
         
         try:
-            with fitz.open(str(pdf_path)) as doc:
+            with fitz.open(str(Path(pdf_path).resolve())) as doc:
                 for page_num in range(len(doc)):
                     page = doc[page_num]
                     pix = page.get_pixmap(matrix=mat)
@@ -60,7 +60,7 @@ class PDFProcessor:
         """
         extracted_images = []
         try:
-            with fitz.open(str(pdf_path)) as doc:
+            with fitz.open(str(Path(pdf_path).resolve())) as doc:
                 for page_num in range(len(doc)):
                     page = doc[page_num]
                     image_list = page.get_images(full=True)
@@ -94,7 +94,7 @@ class PDFProcessor:
         """
         try:
             total_text_len = 0
-            with fitz.open(str(pdf_path)) as doc:
+            with fitz.open(str(Path(pdf_path).resolve())) as doc:
                 pages_to_check = min(3, len(doc))
                 for page_num in range(pages_to_check):
                     page = doc[page_num]
@@ -114,7 +114,7 @@ class PDFProcessor:
         Get the total number of pages in the PDF.
         """
         try:
-            with fitz.open(str(pdf_path)) as doc:
+            with fitz.open(str(Path(pdf_path).resolve())) as doc:
                 return len(doc)
         except Exception as e:
             logger.error(f"Error getting page count for {pdf_path}: {e}")
