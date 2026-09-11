@@ -1,10 +1,18 @@
 ﻿{
   "tolerances": {
     "latency_p95_ms": 15000,
-    "min_accuracy": 0.85
+    "numeric_tolerance_pct": 5
+  },
+  "quality_gates": {
+    "grounding": 0.95,
+    "hallucination": 0.02,
+    "risk": 0.95,
+    "tool_execution": 0.95,
+    "end_to_end": 0.90,
+    "consistency": 0.90
   },
   "runner": {
     "timeout_per_task_s": 60,
-    "retries": 1
+    "repetitions": 1
   }
 }

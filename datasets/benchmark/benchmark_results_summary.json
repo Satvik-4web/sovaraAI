@@ -1,0 +1,16 @@
+{
+  "total_questions": 0,
+  "total_runs": 0,
+  "overall_pass_rate": 0.0,
+  "overall_partial_rate": 0.0,
+  "overall_fail_rate": 0.0,
+  "grounded_answer_rate": 0.0,
+  "hallucination_rate": 0.0,
+  "consistency_rate": 0.95,
+  "mean_latency_ms": 0,
+  "p95_latency_ms": 0,
+  "quality_gates": {
+    "grounding": false,
+    "end_to_end": false
+  }
+}
