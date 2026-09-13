@@ -7,9 +7,11 @@ import os
 import shutil
 import json
 from main import run_sovara_task
+from patch_api import chat_router
 import time
 
 app = FastAPI(title="SOVARA API")
+app.include_router(chat_router)
 
 # Add CORS middleware
 app.add_middleware(

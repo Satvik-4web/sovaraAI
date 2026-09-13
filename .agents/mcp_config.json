@@ -1,0 +1,11 @@
+{
+  "mcpServers": {
+    "powerpoint": {
+      "command": "uvx",
+      "args": ["--with", "mcp<2", "powerpoint-mcp"],
+      "env": {
+        "UV_CACHE_DIR": "d:\\uv_cache"
+      }
+    }
+  }
+}

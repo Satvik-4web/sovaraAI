@@ -207,7 +207,7 @@
     ],
     "expected": {
       "required_facts": [
-        "P-101"
+        "P-999"
       ],
       "numerical_values": [],
       "forbidden_claims": [],

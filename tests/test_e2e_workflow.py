@@ -54,7 +54,7 @@ def test_xlsx_upload_and_analyze():
     assert os.path.exists(file_path)
     
     res = analyze_excel(file_path=file_path)
-    assert res["status"] != "error"
+    assert res.get("success", False) is True
 
 def test_sop_retrieval():
     from Rag.search import search_knowledge
@@ -65,6 +65,7 @@ def test_sop_retrieval():
 def test_cross_modal_hero_task():
     task_id = "test-hero-123"
     tasks_db[task_id] = {"id": task_id, "status": "CREATED", "events": []}
+    files_db[task_id] = []
     
     files = ["demo/pump_pid.png", "demo/inspection_report.pdf", "demo/pump_inspection.xlsx"]
     for f_path in files:

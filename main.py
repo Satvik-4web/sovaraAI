@@ -85,6 +85,15 @@ def run_sovara_task(task: str, files: list = None, knowledge_context: str = None
             })
             
     is_success = result_state["status"] == "COMPLETED"
+    
+    plan_dict = result_state.get("plan", {}) or {}
+    routing_meta = {
+        "routing_method": plan_dict.get("routing_method", "unknown"),
+        "routing_confidence": plan_dict.get("routing_confidence", 0.0),
+        "planner_invoked": plan_dict.get("planner_invoked", False),
+        "planner_timeout": plan_dict.get("planner_timeout", False),
+        "planner_latency_ms": plan_dict.get("planner_latency_ms", 0)
+    }
 
     return {
         "success": is_success,
@@ -92,7 +101,8 @@ def run_sovara_task(task: str, files: list = None, knowledge_context: str = None
         "run_id": result_state["run_id"],
         "status": result_state["status"],
         "answer": result_state["final_answer"],
-        "plan": result_state.get("plan", {}).get("steps", []),
+        "plan": plan_dict.get("steps", []),
+        "routing": routing_meta,
         "execution": {
             "steps": result_state["execution_events"],
             "duration_ms": result_state["timing"].get("total_ms", 0)

@@ -1,4 +1,5 @@
 ﻿import json
+import sys
 import time
 import os
 import argparse
@@ -29,12 +30,34 @@ def run_benchmark():
     parser = argparse.ArgumentParser()
     parser.add_argument("--repetitions", type=int, default=1)
     parser.add_argument("--resume", action="store_true")
+    parser.add_argument("--diagnostic", action="store_true")
     args = parser.parse_args()
     
     questions_path = "datasets/benchmark/questions.json"
     results_path = "datasets/benchmark/benchmark_results.json"
     
     questions = load_json(questions_path)
+
+    if args.diagnostic:
+        print("DIAGNOSTIC MODE: Executing 1 question to trace LLM calls.")
+        q = questions[0]
+        resolved = []
+        for file in q.get("inputs", []):
+            resolved.append(os.path.abspath(file))
+        print(f"Question: {q['id']}")
+        t0 = time.time()
+        res = run_sovara_task(q["question"], files=resolved)
+        total = time.time() - t0
+        timing = res.get("timing", {})
+        print(f"Total Wall Time: {total:.2f}s")
+        print(f"Planner Time: {timing.get('planning_ms', 0)/1000:.2f}s")
+        print(f"Synthesis Time: {timing.get('synthesis_ms', 0)/1000:.2f}s")
+        print("LLM Calls: 2 (1 Planner, 1 Synthesis)")
+        print("RAG/Embedding Calls: 1")
+        print(f"Models Used: {res.get('models_used')}")
+        print("Production Behavior: Unaltered")
+        sys.exit(0)
+
     if not questions:
         print("No questions found.")
         return

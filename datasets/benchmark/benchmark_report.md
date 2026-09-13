@@ -1,16 +1,17 @@
 # SOVARA Benchmark Report
 
 ## 1. Executive Summary
-Total questions evaluated: 0
-Total runs: 0
+**Benchmark Status:** COMPLETED
+Executions Completed: 40/40
+Runs Expected: 40
 
 ## 2. Overall Metrics
-- Pass Rate: 0.00%
-- Partial Rate: 0.00%
-- Fail Rate: 0.00%
-- Grounded Answer Rate: 0.00%
-- Hallucination Rate: 0.00%
-- Mean Latency: 0 ms
+- Pass Rate: 2.50%
+- Partial Rate: 22.50%
+- Fail Rate: 75.00%
+- Grounded Answer Rate: 2.50%
+- Hallucination Rate: 95.00%
+- Mean Latency: 18656 ms
 - Consistency Rate: 95.00%
 
 ## Quality Gates

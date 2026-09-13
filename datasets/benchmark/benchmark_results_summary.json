@@ -1,16 +1,17 @@
 {
-  "total_questions": 0,
-  "total_runs": 0,
-  "overall_pass_rate": 0.0,
-  "overall_partial_rate": 0.0,
-  "overall_fail_rate": 0.0,
-  "grounded_answer_rate": 0.0,
-  "hallucination_rate": 0.0,
-  "consistency_rate": 0.95,
-  "mean_latency_ms": 0,
-  "p95_latency_ms": 0,
+  "status": "COMPLETED",
+  "total_questions": 40,
+  "overall_pass_rate": 0.025,
+  "overall_partial_rate": 0.9,
+  "overall_fail_rate": 0.075,
+  "grounded_answer_rate": 0.025,
+  "hallucination_rate": 0.975,
+  "mean_latency_ms": 21818.417978286743,
+  "p95_latency_ms": 109768.2475924491,
   "quality_gates": {
     "grounding": false,
+    "hallucination": false,
     "end_to_end": false
-  }
+  },
+  "quality_gate_status": "FAIL"
 }
