@@ -1,9 +1,10 @@
 # SOVARA
+
 ### Sovereign Industrial Intelligence
 
-*Local-first conversational agentic AI for confidential industrial knowledge work.*
+Local-first conversational agentic AI for confidential industrial knowledge work.
 
-SOVARA combines local language models, retrieval, multimodal document understanding, deterministic tools, and rigorous verification into a single, controlled AI workspace. It is designed to orchestrate complex tasks over confidential engineering and operational data without relying on external cloud APIs.
+SOVARA combines local language models, retrieval, multimodal document understanding, deterministic tools, and rigorous verification into a controlled AI workspace.
 
 ![Python](https://img.shields.io/badge/Python-3.10+-blue?style=flat-square&logo=python)
 ![React](https://img.shields.io/badge/React-18-61DAFB?style=flat-square&logo=react)
@@ -15,137 +16,175 @@ SOVARA combines local language models, retrieval, multimodal document understand
 
 ---
 
-## Why SOVARA?
-
-Industrial environments often work with:
-- Confidential manuals and internal procedures
-- Inspection reports
-- Engineering drawings (P&IDs)
-- Maintenance records
-- Spreadsheets and telemetry data
-
-Sending such information to external AI APIs may conflict with organizational privacy, security, or strict deployment requirements. SOVARA explores a different architecture by keeping all execution strictly local.
-
-```text
-CONFIDENTIAL DATA
-        ↓
-LOCAL AI WORKBENCH
-        ↓
-RAG / VISION / OCR / TOOLS
-        ↓
-EVIDENCE
-        ↓
-VERIFICATION
-        ↓
-CONTROLLED OUTPUT
-```
+## Table of Contents
+- [Why SOVARA?](#why-sovara)
+- [What SOVARA Does](#what-sovara-does)
+- [Architecture](#architecture)
+- [Technology Stack](#technology-stack)
+- [Local-First & Security](#local-first--security)
+- [Example Workflow](#example-workflow)
+- [Evaluation](#evaluation)
+- [Performance Engineering](#performance-engineering)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Local Models](#local-models)
+- [API Overview](#api-overview)
+- [Current Limitations](#current-limitations)
+- [Roadmap](#roadmap)
+- [Origin](#origin)
+- [Engineering Principles](#engineering-principles)
+- [License](#license)
 
 ---
 
-## What SOVARA Actually Does
+## Why SOVARA?
+
+Industrial environments can work with:
+- confidential manuals
+- maintenance procedures
+- inspection reports
+- engineering drawings
+- spreadsheets
+- internal correspondence
+- operational data
+
+Sending sensitive material to external AI APIs may conflict with organizational privacy, security or deployment requirements.
+
+SOVARA explores a different architecture:
+
+```text
+CONFIDENTIAL DATA
+        |
+        v
+LOCAL AI WORKBENCH
+        |
+        v
+RAG / VISION / OCR / TOOLS
+        |
+        v
+EVIDENCE
+        |
+        v
+VERIFICATION
+        |
+        v
+CONTROLLED OUTPUT
+```
+
+SOVARA is designed around local execution and controlled data flow.
+*Note: Local software execution does not inherently prove a physical network air-gap. Physical air-gapping is a deployment/network property.*
+
+---
+
+## What SOVARA Does
 
 This repository implements the following core capabilities:
 
 - **Conversational interaction:** Maintain session context with a local LLM.
-- **Capability-based routing:** Dynamically route simple queries around heavy agentic orchestration.
-- **RAG & Vector Retrieval:** Local embeddings using `nomic-embed-text` and local vector storage via Qdrant.
-- **Multimodal Document Analysis:** Extract information from P&IDs and scanned documents using Qwen2.5-VL and EasyOCR.
-- **Data Analysis Tools:** Execute Python code and parse Excel/CSV files locally.
-- **Document Generation:** Output verified reports as DOCX/Markdown.
-- **Evidence & Citations:** Trace every claim back to the retrieved source chunk or tool execution.
-- **Verification & Risk Assessment:** Automatically validate answers against retrieved evidence and flag high-risk or unsupported claims for human review.
-- **Agentic Orchestration:** Coordinate complex tasks using LangGraph stateful execution.
+- **Capability-based routing:** Bypass deep agentic orchestration for simple queries.
+- **RAG & Qdrant retrieval:** Semantic search over local documents using `nomic-embed-text`.
+- **Multimodal document analysis:** Extract information from P&IDs and scanned PDFs using Qwen2.5-VL and EasyOCR.
+- **Excel analysis & Python execution:** Deterministic tools for calculating structured measurements.
+- **Document generation:** Output findings as DOCX/Markdown reports.
+- **Evidence extraction & citations:** Trace claims back to retrieved source chunks.
+- **Verification & Risk assessment:** Flag unsupported claims and escalate to human review.
+- **Agentic orchestration:** Stateful workflow execution using LangGraph.
+
+SOVARA acts as controlled AI assistance and decision support, not an autonomous safety-critical controller.
 
 ---
 
-## Architecture Workflow
+## Architecture
 
 ```text
-USER REQUEST
- ↓
+USER
+  |
+  v
 CONVERSATIONAL CORE
- ↓
+  |
+  v
 FAST ROUTER
- ↓
- ┌──────────────┬──────────────┬──────────────┐
- │ RAG          │ VLM / OCR    │ TOOLS        │
- │ Qdrant       │ Documents    │ Python/Excel │
- └──────────────┴──────────────┴──────────────┘
- ↓
-EVIDENCE
- ↓
-SYNTHESIS
- ↓
-VERIFICATION
- ↓
-RISK / HUMAN REVIEW
- ↓
-FINAL ANSWER
+  |
+  +----------------+----------------+----------------+
+  |                |                |
+  v                v                v
+ RAG             VLM/OCR          TOOLS
+ Qdrant          Documents        Python/Excel
+  |                |                |
+  +----------------+----------------+
+                   |
+                   v
+                EVIDENCE
+                   |
+                   v
+               SYNTHESIS
+                   |
+                   v
+              VERIFICATION
+                   |
+                   v
+            RISK / HUMAN REVIEW
+                   |
+                   v
+              FINAL ANSWER
 ```
 
-1. **Conversational Core:** Manages the user session, conversation history, and handles file attachments.
-2. **Fast Router:** Analyzes the request intent to route it either to a direct, fast response path or a deep agentic orchestration path.
-3. **Execution Layer:** Dispatches work to RAG, Multimodal/Vision components, or local deterministic tools.
-4. **Synthesis & Verification:** Aggregates findings and ensures the generated output is strictly supported by the gathered evidence.
-5. **Risk Assessment:** Checks for safety thresholds, missing evidence, or sensitive operations, escalating to a Human-in-the-Loop (HITL) review if necessary.
-
----
-
-## Architecture Deep Dive
-
-### Conversational Layer
-Handles multi-turn conversational context, tracks attached files, and manages session state.
+### Conversational Core
+Handles natural-language interaction, session context, follow-up questions, and file-aware context.
+*Important distinction: Conversation history provides context. It should not automatically be treated as authoritative industrial evidence.*
 
 ### Fast Router
-Agentic planning is computationally expensive. The Fast Router evaluates incoming queries and bypasses the heavy Planner Agent for simple questions, significantly reducing latency for trivial interactions.
+Agentic planning is computationally expensive. Simple requests should not always trigger the full agentic pipeline. The Fast Router dynamically evaluates incoming queries and directs them to either direct RAG, multimodal analysis, calculation tools, or full agentic orchestration, reducing latency for simple interactions.
 
 ### Agentic Orchestration
-Implemented using LangGraph, the Planner Agent breaks down complex requests into a Directed Acyclic Graph (DAG) of sub-tasks. It selects the appropriate tools and coordinates the execution steps.
+Uses LangGraph for stateful execution of complex workflows:
+`UNDERSTAND -> PLAN -> SELECT CAPABILITY -> EXECUTE -> GATHER RESULTS -> SYNTHESIZE -> VERIFY -> ASSESS RISK`
 
-### RAG (Retrieval-Augmented Generation)
-- **Loading & Chunking:** Processes uploaded text and PDFs.
-- **Embeddings:** Generates embeddings locally using `nomic-embed-text`.
-- **Qdrant:** Stores vectors in a local, file-based Qdrant instance.
-- **Retrieval:** Performs semantic search to ground the LLM's responses.
+### RAG
+Transforms static manuals into queryable vector spaces:
+`DOCUMENT -> LOADER -> CHUNKING -> EMBEDDING -> QDRANT -> RETRIEVAL -> GROUNDED RESPONSE`
+This allows organizational knowledge to remain local and updatable without model retraining. Responses can reference source evidence, and retrieval can be controlled.
 
-### Multimodal Layer
-Utilizes **Qwen2.5-VL** alongside **EasyOCR** (PyTorch) to interpret engineering drawings (e.g., P&IDs), detect text in scanned PDFs, and analyze visual evidence.
+### Multimodal Intelligence
+Utilizes a local VLM (Qwen2.5-VL) and OCR (EasyOCR) to interpret engineering drawings (P&IDs) and parse scanned PDFs.
 
 ### Tools
-- **Python Executor:** Executes generated Python code for data analysis.
-- **Excel/CSV Analyzer:** Reads and extracts tabular data using `pandas` and `openpyxl`.
-- **Document Generators:** Creates structured reports (DOCX, Markdown).
-- **File Operations:** Manages reading and saving files locally.
+Provides deterministic capabilities (Python execution, Excel parsing, document generation). Deterministic tools are useful for numerical/data operations where programmatic calculations are safer than LLM predictions.
 
-### Verification & Risk
-All generated answers pass through a deterministic and LLM-based verification engine. Claims are checked against the retrieved evidence. If a claim lacks support or violates physical constraints/safety protocols, it is flagged, and the risk module recommends a human review.
+### Verification and Risk
+Checks final synthesis for evidence support, citation coverage, and consistency checking. Detects insufficient-evidence situations, classifies risk, and escalates to human review.
 
 ---
 
-## Model Stack
+## Technology Stack
 
-| Component | Model/Technology | Purpose |
-|---|---|---|
-| **Reasoning / Planner** | Qwen3:4B (via Ollama) | Orchestration, intent routing, and final synthesis |
-| **Vision** | Qwen2.5-VL (via Ollama) | P&ID analysis, image understanding |
-| **OCR** | EasyOCR + PyTorch | Extracting text from scans and diagrams |
-| **Embeddings** | nomic-embed-text | Local vector embeddings for RAG |
-| **Vector DB** | Qdrant | Local semantic search |
-| **Orchestration** | LangGraph | Stateful multi-agent execution |
+| Layer | Technology | Purpose |
+|------|------------|---------|
+| Local Reasoning | Qwen3:4B | Local reasoning / tool calling |
+| Vision | Qwen2.5-VL:3B | Image/document understanding |
+| OCR | EasyOCR + PyTorch | Local text extraction |
+| Embeddings | nomic-embed-text | Vector representations |
+| Vector Database | Qdrant | Local retrieval |
+| Orchestration | LangGraph | Stateful agent execution |
+| Backend | Python / FastAPI | Local services |
+| Frontend | React / TypeScript / Vite | Workbench UI |
 
 ---
 
 ## Local-First & Security
 
-SOVARA is designed around local-first execution to protect confidential industrial data. 
+SOVARA is designed around local execution to protect confidential industrial data. 
 
-- **Local Inference:** All LLM, VLM, and Embedding models run entirely on local hardware via Ollama. No external API calls are made.
-- **Local Storage:** Documents and vectors are stored locally (Qdrant file-based storage).
-- **Controlled Tool Execution:** Tools operate within restricted paths.
-- **Sandbox Environment:** The Python execution tool supports running within a local Docker container for isolation.
+Security mechanisms implemented:
+- local model inference
+- local vector database
+- local OCR and VLM processing
+- local document processing
+- controlled tool execution
+- Docker execution / sandboxing
+- evidence traceability
 
-**Note on Security:** 
-While SOVARA's software architecture prevents telemetry and external API calls (zero-egress by design), a true physical air-gap is a deployment and network infrastructure property. SOVARA provides the *software capability* to run in such an environment, but physical security guarantees require appropriate hardware deployment.
+*Note: SOVARA provides local software execution. A physical network air-gap is a deployment/network property and cannot be proven merely because the software uses localhost.*
 
 ---
 
@@ -154,39 +193,43 @@ While SOVARA's software architecture prevents telemetry and external API calls (
 **Scenario:** 
 *"Analyze the vibration condition of P-101 using the inspection report, maintenance SOP and vibration history."*
 
-1. **User Request:** Uploads `pump_inspection.xlsx`, `inspection_report.pdf`, and a P&ID diagram.
-2. **Router:** Detects a complex multi-file task and engages the Planner Agent.
-3. **RAG Retrieval:** Searches the Maintenance SOP for standard operating limits.
-4. **Multimodal Analysis:** Analyzes the P&ID to understand the pump's system context.
-5. **Excel Analysis:** Executes local Python/Pandas to extract vibration statistics from the spreadsheet.
-6. **Evidence Aggregation:** Collects standard limits, system context, and actual vibration data.
-7. **Synthesis & Verification:** Drafts the analysis and verifies that the reported anomaly is grounded in the retrieved Excel data.
-8. **Risk Assessment:** Flags the abnormal vibration condition and marks the response for engineer review.
-9. **Final Output:** Presents the verified finding with citations to the user.
+1. User submits the request.
+2. Conversational layer preserves context.
+3. Fast Router identifies required capabilities.
+4. RAG retrieves relevant SOP/maintenance evidence.
+5. Multimodal processing analyzes relevant documents/images when required.
+6. Excel/Python tools analyze structured measurements.
+7. Evidence is aggregated.
+8. SOVARA generates a grounded response.
+9. Verification checks evidence support and consistency.
+10. Risk assessment determines whether human review is appropriate.
+11. Final answer/document is returned.
+
+*Positioned as decision support rather than autonomous safety-critical control.*
 
 ---
 
-## Benchmark & Evaluation
+## Evaluation
 
 A 40-task engineering evaluation was conducted to measure orchestration efficiency and system latency.
 
 **Verified Results:**
 - **40-task evaluation completed.**
-- **Mean latency reduction:** 94.77s → **21.81s** (~77% reduction)
-- **Planner bypass:** **24 / 40** tasks successfully bypassed the heavy orchestration layer via capability-based routing.
+- **Mean latency:** 94.77s → **21.81s** (~77% reduction)
+- **Planner bypass:** **24 / 40** tasks
 
-*Note: Current evaluation includes fixture-alignment limitations and is intended as an engineering benchmark to track routing efficiency rather than a production accuracy certification.*
+Capability-based routing reduced unnecessary full agentic execution.
+
+*Current benchmark results are engineering measurements rather than production accuracy certification. Some evaluation fixtures require further alignment with evolving demo data and knowledge-base contents.*
 
 ---
 
 ## Performance Engineering
 
-Running local AI models requires significant engineering trade-offs between privacy and performance. Latency can be high due to:
-- Constrained GPU memory requiring frequent model loading/unloading.
-- Splitting workloads between CPU and GPU.
-- Sequential execution of multiple specialized models (Reasoning → Vision → Embedding).
+Running local AI models requires significant engineering trade-offs:
+**PRIVACY + LOCAL CONTROL** vs **LATENCY + HARDWARE CONSTRAINTS**
 
-SOVARA combats this primarily through **Fast Routing**—preventing simple questions from triggering the full LangGraph orchestration—and relying on **deterministic tools** (like Python/Excel parsing) instead of LLMs wherever possible.
+Local inference can have higher latency than cloud inference due to limited GPU VRAM, model loading/unloading, and multimodal inference cost. SOVARA combats this primarily through capability-based routing (so simple requests avoid expensive orchestration) and relying on deterministic tools.
 
 ---
 
@@ -194,45 +237,148 @@ SOVARA combats this primarily through **Fast Routing**—preventing simple quest
 
 ```text
 sovaraAI/
-├── agents/              # Core LangGraph orchestration, planner, and chat engine
-├── datasets/            # Benchmark definitions, scoring scripts, and evaluation data
-├── multimodal/          # Vision and OCR modules (Qwen2.5-VL, EasyOCR)
-├── Rag/                 # RAG implementation (Chunking, embeddings, Qdrant integration)
-├── routing/             # Fast Router logic for intent classification
-├── tests/               # End-to-end tests, streaming tests, and unit tests
-├── tools/               # Local tool execution (Python, Excel, Document generation, Sandbox)
+├── agents/              # Orchestration, planner, and chat engine
+├── datasets/            # Benchmark definitions and evaluation data
+├── multimodal/          # Vision and OCR processing modules
+├── Rag/                 # Ingestion and retrieval logic
+├── routing/             # Fast Router classification logic
+├── tests/               # End-to-end tests and unit tests
+├── tools/               # Deterministic tools (Python, Excel, file ops)
 ├── uploads/             # Ephemeral local storage for session attachments
-├── verification/        # Evidence validation and risk assessment logic
+├── verification/        # Evidence validation and risk assessment
 ├── api_server.py        # FastAPI backend server
-├── main.py              # CLI/Entrypoint orchestration
-└── requirements.txt     # Python dependencies
+├── patch_api.py         # Conversational endpoints router
+└── requirements.txt     # Backend dependencies
 ```
 
-*(The frontend UI is housed in a separate `sovara-ai-workbench` repository built with React, TypeScript, and TailwindCSS).*
+*(The frontend UI is housed in a separate `sovara-ai-workbench` repository).*
 
 ---
 
-## Setup Instructions
+## Getting Started
 
-1. **Prerequisites:** Python 3.10+
-2. **Environment:** 
-   ```bash
-   python -m venv .venv
-   .venv\Scripts\activate
-   pip install -r requirements.txt
-   ```
-3. **Ollama:** Install from [ollama.com](https://ollama.com). Ensure the daemon is running.
-4. **Models:** 
-   ```bash
-   ollama pull qwen3:4b
-   ollama pull qwen2.5-vl
-   ollama pull nomic-embed-text
-   ```
-5. **Knowledge Base:** Ingest documents using `python -m Rag.ingest`
-6. **Run Backend:** `python api_server.py` (runs on port 8000 by default)
+### Prerequisites
+- Python 3.10+
+- Node.js (for frontend)
+- Ollama daemon running
+
+### Clone
+```bash
+git clone https://github.com/Satvik-4web/sovaraAI.git
+cd sovaraAI
+```
+
+### Backend Setup
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+### Local Model Setup
+```bash
+ollama pull qwen3:4b
+ollama pull qwen2.5-vl
+ollama pull nomic-embed-text
+```
+
+### Run Backend
+```bash
+python api_server.py
+```
+*(Server runs on port 8000 by default)*
 
 ---
 
-## SIH Context
+## API Overview
 
-SOVARA was conceptualized and developed as a robust technical solution for strict industrial use cases where data privacy, confident decision-making, and verification are paramount. It demonstrates how autonomous agentic patterns can be securely deployed inside enterprise firewalls.
+FastAPI automatically exposes the OpenAPI schema and an interactive Swagger UI. Once the server is running, you can explore and test the endpoints at:
+- **Swagger UI:** `http://localhost:8000/docs`
+- **OpenAPI JSON:** `http://localhost:8000/openapi.json`
+
+| Endpoint | Method | Purpose |
+|----------|--------|---------|
+| `/api/chat/session` | POST | Initialize a new conversational session |
+| `/api/chat/session/{session_id}` | GET | Retrieve session context |
+| `/api/chat/message/{session_id}` | POST | Send a message (returns SSE stream) |
+| `/api/chat/sessions` | GET | List all active sessions |
+| `/api/tasks` | POST | Submit an asynchronous execution task |
+| `/api/tasks/{task_id}/files` | POST | Upload files to a task |
+| `/api/tasks/{task_id}/run` | POST | Execute a complex task |
+
+---
+
+## Current Limitations
+
+### Local inference latency
+Local open-weight models can be slower than cloud AI systems with large GPU infrastructure.
+
+### Hardware constraints
+Consumer GPUs can constrain model size, context, concurrency and multimodal workloads.
+
+### Multimodal latency
+Vision-language models can be significantly slower than text-only models.
+
+### Sandbox environment
+If Docker is unavailable in the Windows development environment, a local fallback may be used, but it does not provide equivalent container isolation.
+
+### Benchmark alignment
+Some benchmark fixtures are not perfectly aligned with current demo data.
+
+---
+
+## Roadmap
+
+### Completed
+- Capability-based routing and Planner bypass
+- Multimodal extraction (VLM + OCR)
+- Deterministic Python/Excel tools
+- RAG integration with local Qdrant
+
+### In Progress
+- Expanding industrial evaluation datasets
+- Improving table extraction
+
+### Planned
+- stronger multi-turn memory
+- better retrieval/reranking
+- improved P&ID understanding
+- enterprise RBAC hardening
+- deployment automation
+
+---
+
+## Origin
+
+SOVARA was originally developed for Smart India Hackathon 2026 under industrial AI problem statement SIH26117. 
+
+Developed for the SIH 2026 challenge; the project was not shortlisted. 
+
+SIH was the catalyst. 
+SOVARA is the project.
+
+---
+
+## Engineering Principles
+
+### Local by Design
+Sensitive workflows should not require external AI APIs during local execution.
+
+### Evidence over Unsupported Generation
+Industrial claims should be grounded in retrieved or tool-generated evidence.
+
+### Deterministic Tools Where Appropriate
+Use Python/Excel tools for calculations instead of asking the LLM to perform every operation.
+
+### Route Before Orchestrating
+Use the cheapest capable execution path before invoking a complex agentic workflow.
+
+### Human Review for Uncertainty
+Insufficient evidence and higher-risk outputs should be surfaced for review.
+
+---
+
+## License
+
+License: Not yet specified.
+
