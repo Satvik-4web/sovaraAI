@@ -52,23 +52,16 @@ Sending sensitive material to external AI APIs may conflict with organizational 
 
 SOVARA explores a different architecture:
 
-```text
-CONFIDENTIAL DATA
-        |
-        v
-LOCAL AI WORKBENCH
-        |
-        v
-RAG / VISION / OCR / TOOLS
-        |
-        v
-EVIDENCE
-        |
-        v
-VERIFICATION
-        |
-        v
-CONTROLLED OUTPUT
+```mermaid
+flowchart TD
+    A[CONFIDENTIAL DATA] --> B[LOCAL AI WORKBENCH]
+    B --> C[RAG / VISION / OCR / TOOLS]
+    C --> D[EVIDENCE]
+    D --> E[VERIFICATION]
+    E --> F[CONTROLLED OUTPUT]
+    
+    classDef secure fill:#eef2f5,stroke:#3b5998,stroke-width:2px;
+    class A,F secure;
 ```
 
 SOVARA is designed around local execution and controlled data flow.
@@ -96,37 +89,36 @@ SOVARA acts as controlled AI assistance and decision support, not an autonomous 
 
 ## Architecture
 
-```text
-USER
-  |
-  v
-CONVERSATIONAL CORE
-  |
-  v
-FAST ROUTER
-  |
-  +----------------+----------------+----------------+
-  |                |                |
-  v                v                v
- RAG             VLM/OCR          TOOLS
- Qdrant          Documents        Python/Excel
-  |                |                |
-  +----------------+----------------+
-                   |
-                   v
-                EVIDENCE
-                   |
-                   v
-               SYNTHESIS
-                   |
-                   v
-              VERIFICATION
-                   |
-                   v
-            RISK / HUMAN REVIEW
-                   |
-                   v
-              FINAL ANSWER
+```mermaid
+flowchart TD
+    USER([User]) --> CC[Conversational Core]
+    CC --> FR{Fast Router}
+    
+    FR -- Simple Retrieval --> RAG[(RAG\nQdrant)]
+    FR -- Vision --> VLM[VLM / OCR\nDocuments]
+    FR -- Computation --> TOOLS[Tools\nPython/Excel]
+    FR -- Complex --> ORCH[Planner Agent\nLangGraph]
+    
+    ORCH --> RAG
+    ORCH --> VLM
+    ORCH --> TOOLS
+    
+    RAG --> EV[EVIDENCE]
+    VLM --> EV
+    TOOLS --> EV
+    
+    EV --> SYN[SYNTHESIS]
+    SYN --> VER[VERIFICATION]
+    VER --> RISK{RISK / HUMAN REVIEW}
+    RISK --> FA([FINAL ANSWER])
+    
+    classDef core fill:#f9f9f9,stroke:#333,stroke-width:2px;
+    classDef db fill:#e1f5fe,stroke:#0288d1,stroke-width:2px;
+    classDef alert fill:#ffebee,stroke:#c62828,stroke-width:2px;
+    
+    class USER,FA core;
+    class RAG,VLM,TOOLS db;
+    class RISK alert;
 ```
 
 ### Conversational Core
